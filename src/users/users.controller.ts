@@ -8,23 +8,64 @@ import {
   Param,
   Query,
   NotFoundException,
-  UseInterceptors,
-  ClassSerializerInterceptor,
+  HttpCode,
+  HttpStatus,
+  Session,
+  UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { UsersService } from './users.service';
 import { Serialize } from '../interceptors/serialize.interceptor';
 import { UserDto } from './dtos/user.dto';
+import { AuthService } from './auth.service';
+import { CurrentUser } from './decorators/current-user.decorator';
+import { User } from './user.entity';
+import { AuthGuard } from 'src/guards/auth.guard';
 
-@Serialize(UserDto)
 @Controller('auth')
+@Serialize(UserDto)
 export class UsersController {
-  constructor(private usersService: UsersService) {}
+  constructor(
+    private usersService: UsersService,
+    private authService: AuthService,
+  ) {}
+
+  @Get('whoami')
+  whoAmI(@Session() session: any) {
+    const user = this.usersService.findOne(session.userID);
+
+    if (!user) {
+      throw new UnauthorizedException('Login First');
+    }
+    return user;
+  }
+
+  @Get('whoami2')
+  @UseGuards(AuthGuard)
+  whoAmI2(@CurrentUser() user: User) {
+    return user;
+  }
+
+  @Post('/signout')
+  async signOut(@Session() session: any) {
+    session.userID = null;
+  }
 
   @Post('/signup')
-  createUser(@Body() body: CreateUserDto) {
-    this.usersService.create(body.email, body.password);
+  async createUser(@Body() body: CreateUserDto, @Session() session: any) {
+    const user = await this.authService.signUp(body.email, body.password);
+    session.userID = user.id;
+    return user;
+  }
+
+  @Post('/signin')
+  @HttpCode(HttpStatus.OK)
+  async signIn(@Body() body: CreateUserDto, @Session() session: any) {
+    const user = await this.authService.signIn(body.email, body.password);
+    session.userID = user.id;
+    return user;
   }
 
   @Get('/:id')
