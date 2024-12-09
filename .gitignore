@@ -36,3 +36,8 @@ lerna-debug.log*
 
 # Ignore SQLite database file
 db.sqlite
+test.sqlite
+
+#env files
+.env.*
+!.env.example
