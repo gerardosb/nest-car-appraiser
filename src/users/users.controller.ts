@@ -34,7 +34,7 @@ export class UsersController {
 
   @Get('whoami')
   whoAmI(@Session() session: any) {
-    const user = this.usersService.findOne(session.userID);
+    const user = this.usersService.findOne(session.userId);
 
     if (!user) {
       throw new UnauthorizedException('Login First');
@@ -50,13 +50,13 @@ export class UsersController {
 
   @Post('/signout')
   async signOut(@Session() session: any) {
-    session.userID = null;
+    session.userId = null;
   }
 
   @Post('/signup')
   async createUser(@Body() body: CreateUserDto, @Session() session: any) {
     const user = await this.authService.signUp(body.email, body.password);
-    session.userID = user.id;
+    session.userId = user.id;
     return user;
   }
 
@@ -64,7 +64,7 @@ export class UsersController {
   @HttpCode(HttpStatus.OK)
   async signIn(@Body() body: CreateUserDto, @Session() session: any) {
     const user = await this.authService.signIn(body.email, body.password);
-    session.userID = user.id;
+    session.userId = user.id;
     return user;
   }
 

@@ -97,7 +97,7 @@ describe('UsersController', () => {
   });
 
   it('signIn updates session object and return user', async () => {
-    const session = { userID: -10 };
+    const session = { userId: -10 };
     const user = await controller.signIn(
       {
         email: 'asdf@asdf.com',
@@ -107,6 +107,6 @@ describe('UsersController', () => {
     );
 
     expect(user.id).toEqual(1);
-    expect(session.userID).toEqual(user.id);
+    expect(session.userId).toEqual(user.id);
   });
 });
